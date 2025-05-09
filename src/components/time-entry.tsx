@@ -14,6 +14,7 @@ import {
   Typography,
 } from "@mui/material";
 import { useToast } from "../contexts/toast-context";
+import { isValid12HourTimeFormat } from "../utils/helpers";
 
 interface Entry {
   time: string;
@@ -44,7 +45,7 @@ export function TimeEntry({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!formattedTime) {
+    if (!isValid12HourTimeFormat(time)) {
       showToast(
         "Please enter time in format: h:mm:ss p (e.g., 9:30:00 am) or HH:mm:ss (e.g., 09:30:00)",
         "error"
@@ -53,14 +54,12 @@ export function TimeEntry({
     }
 
     onAddEntries({
-      time: formattedTime,
+      time: time,
       type: timingRadio,
     });
 
     showToast(
-      `Time ${
-        timingRadio === "in" ? "clocked in" : "clocked out"
-      } at ${formattedTime}`,
+      `Time ${timingRadio === "in" ? "clocked in" : "clocked out"} at ${time}`,
       "success"
     );
 

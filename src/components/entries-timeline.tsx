@@ -79,22 +79,7 @@ export function EntriesTimeline({
           >
             <Box>
               {list.map((item, itemIndex) => {
-                const pairedEntry =
-                  item.type === "in"
-                    ? list.slice(itemIndex + 1).find((e) => e.type === "out")
-                    : list
-                        .slice(0, itemIndex)
-                        .reverse()
-                        .find((e) => e.type === "in");
-
-                const timeDifference = pairedEntry
-                  ? calculateTimeDifference(
-                      item.type === "in" ? item.time : pairedEntry.time,
-                      item.type === "in" ? pairedEntry.time : item.time
-                    )
-                  : undefined;
-
-                const lastItem = itemIndex === list.length - 1;
+                const timeDifference = getTimeDifference();
 
                 return (
                   <Item
@@ -188,7 +173,7 @@ function Item({ item, lastItem, timeDifference, onEdit, ...other }: ItemProps) {
             at
           </Typography>
           <Typography variant="h6" sx={{ fontWeight: 700 }}>
-            {format12Hour(item.time)}
+            {item.time}
           </Typography>
           <IconButton
             size="small"
@@ -201,7 +186,7 @@ function Item({ item, lastItem, timeDifference, onEdit, ...other }: ItemProps) {
               },
             }}
           >
-            <EditIcon fontSize="small" />
+            <EditIcon fontSize="small" color="success" />
           </IconButton>
         </Stack>
 
@@ -221,8 +206,7 @@ function Item({ item, lastItem, timeDifference, onEdit, ...other }: ItemProps) {
           >
             <AccessTimeIcon fontSize="small" />
             <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
-              {item.type === "in" ? "Expected Duration" : "Duration"}:{" "}
-              {timeDifference}
+              Duration: {timeDifference}
             </Typography>
           </Stack>
         )}
@@ -256,46 +240,17 @@ function Item({ item, lastItem, timeDifference, onEdit, ...other }: ItemProps) {
 
 // ----------------------------------------------------------------------
 
-function calculateTimeDifference(inTime: string, outTime: string): string {
-  const in24hr = convertTo24Hour(inTime);
-  const out24hr = convertTo24Hour(outTime);
+function getTimeDifference(startTime: string, endTime: string): string {
+  const baseDate = "2000-01-01"; // fixed date to anchor both times
 
-  const inDate = new Date(`2000-01-01T${in24hr}:00`);
-  const outDate = new Date(`2000-01-01T${out24hr}:00`);
+  const start = new Date(`${baseDate} ${startTime}`);
+  const end = new Date(`${baseDate} ${endTime}`);
 
-  const diffMs = outDate.getTime() - inDate.getTime();
+  const diffMs = end.getTime() - start.getTime();
+
   const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
   const diffMinutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
   const diffSeconds = Math.floor((diffMs % (1000 * 60)) / 1000);
 
-  const parts = [];
-  if (diffHours > 0) parts.push(`${diffHours}h`);
-  if (diffMinutes > 0) parts.push(`${diffMinutes}m`);
-  if (diffSeconds > 0) parts.push(`${diffSeconds}s`);
-
-  return parts.join(" ") || "0s";
-}
-
-function convertTo24Hour(timeStr: string): string {
-  const [time, period] = timeStr.split(" ");
-  let [hours, minutes] = time.split(":").map(Number);
-
-  if (period === "PM" && hours !== 12) hours += 12;
-  if (period === "AM" && hours === 12) hours = 0;
-
-  return `${hours.toString().padStart(2, "0")}:${minutes
-    .toString()
-    .padStart(2, "0")}`;
-}
-
-function format12Hour(timeStr: string) {
-  const [hour, minute] = timeStr.split(":");
-  const date = new Date();
-  date.setHours(Number(hour));
-  date.setMinutes(Number(minute));
-  return date.toLocaleTimeString("en-US", {
-    hour: "numeric",
-    minute: "2-digit",
-    hour12: true,
-  });
+  return `${diffHours}h ${diffMinutes}m ${diffSeconds}s`;
 }
