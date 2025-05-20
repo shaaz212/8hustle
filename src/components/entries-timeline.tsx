@@ -1,30 +1,24 @@
-import type { CardProps } from "@mui/material/Card";
-import type { TimelineItemProps } from "@mui/lab/TimelineItem";
-
-import Card from "@mui/material/Card";
-import Timeline from "@mui/lab/Timeline";
-import TimelineDot from "@mui/lab/TimelineDot";
-import Typography from "@mui/material/Typography";
-import CardHeader from "@mui/material/CardHeader";
-import TimelineContent from "@mui/lab/TimelineContent";
-import TimelineSeparator from "@mui/lab/TimelineSeparator";
-import TimelineConnector from "@mui/lab/TimelineConnector";
-import TimelineItem, { timelineItemClasses } from "@mui/lab/TimelineItem";
-import Box from "@mui/material/Box";
-import Paper from "@mui/material/Paper";
-import Stack from "@mui/material/Stack";
+import {
+  Card,
+  CardHeader,
+  Typography,
+  Paper,
+  Stack,
+  Box,
+  Divider,
+  IconButton,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Button,
+  TextField,
+} from "@mui/material";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
-import IconButton from "@mui/material/IconButton";
 import EditIcon from "@mui/icons-material/Edit";
-import Dialog from "@mui/material/Dialog";
-import DialogTitle from "@mui/material/DialogTitle";
-import DialogContent from "@mui/material/DialogContent";
-import DialogActions from "@mui/material/DialogActions";
-import Button from "@mui/material/Button";
-import TextField from "@mui/material/TextField";
 import { useState } from "react";
-
-// ----------------------------------------------------------------------
+import type { CardProps } from "@mui/material";
+import { getInOutPairs } from "../utils/leavingTime";
 
 interface Entry {
   time: string;
@@ -38,6 +32,13 @@ type Props = CardProps & {
   onEditEntry?: (index: number, newTime: string) => void;
 };
 
+type PairedEntry = {
+  in: string;
+  out?: string;
+  inIndex: number;
+  outIndex?: number;
+};
+
 export function EntriesTimeline({
   title,
   subheader,
@@ -45,6 +46,8 @@ export function EntriesTimeline({
   onEditEntry,
   ...other
 }: Props) {
+  const timeLinePairs = getInOutPairs(list);
+
   return (
     <Card {...other}>
       <CardHeader
@@ -56,201 +59,225 @@ export function EntriesTimeline({
         subheader={subheader}
       />
 
-      {list?.length > 0 ? (
-        <Timeline
+      {timeLinePairs.length > 0 ? (
+        <Paper
+          elevation={0}
           sx={{
-            m: 0,
             p: 3,
-            [`& .${timelineItemClasses.root}:before`]: {
-              flex: 0,
-              padding: 0,
-            },
+            border: "1px solid",
+            borderColor: "divider",
+            borderRadius: 2,
+            bgcolor: "background.neutral",
+            m: 2,
           }}
         >
-          <Paper
-            elevation={0}
-            sx={{
-              p: 2,
-              border: "1px solid",
-              borderColor: "divider",
-              borderRadius: 2,
-              bgcolor: "background.neutral",
-            }}
-          >
-            <Box>
-              {list.map((item, itemIndex) => {
-                const timeDifference = getTimeDifference();
-
-                return (
-                  <Item
-                    key={itemIndex}
-                    item={item}
-                    lastItem={lastItem}
-                    timeDifference={timeDifference}
-                    onEdit={(newTime) => onEditEntry?.(itemIndex, newTime)}
-                  />
-                );
-              })}
-            </Box>
-          </Paper>
-        </Timeline>
+          <Stack spacing={3}>
+            {timeLinePairs.map((item, index) => (
+              <InOutItem
+                key={index}
+                item={item}
+                onEditIn={(newTime) => onEditEntry?.(item.inIndex, newTime)}
+                onEditOut={(newTime) =>
+                  item.outIndex !== undefined &&
+                  onEditEntry?.(item.outIndex, newTime)
+                }
+              />
+            ))}
+          </Stack>
+        </Paper>
       ) : (
         <Box
           sx={{
-            height: 300,
+            height: 200,
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
             bgcolor: "background.neutral",
             borderRadius: 2,
-            m: 3,
+            m: 2,
             border: "1px dashed",
             borderColor: "divider",
           }}
         >
-          <Stack direction="column" spacing={1} alignItems="center">
-            <Typography variant="h6" color="text.secondary" fontWeight={500}>
-              No Entry Available
-            </Typography>
-          </Stack>
+          <Typography variant="h6" color="text.secondary" fontWeight={500}>
+            No Entry Available
+          </Typography>
         </Box>
       )}
     </Card>
   );
 }
 
-// ----------------------------------------------------------------------
+function InOutItem({
+  item,
+  onEditIn,
+  onEditOut,
+}: {
+  item: PairedEntry;
+  onEditIn: (newTime: string) => void;
+  onEditOut: (newTime: string) => void;
+}) {
+  const duration = item.out ? getTimeDifference(item.in, item.out) : "--";
+  const [editDialog, setEditDialog] = useState<{
+    open: boolean;
+    type: "in" | "out";
+    time: string;
+  } | null>(null);
 
-type ItemProps = TimelineItemProps & {
-  lastItem: boolean;
-  item: Entry;
-  timeDifference?: string;
-  onEdit?: (newTime: string) => void;
-};
-
-function Item({ item, lastItem, timeDifference, onEdit, ...other }: ItemProps) {
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [editedTime, setEditedTime] = useState(item.time);
-
-  const handleEditClick = () => {
-    setIsEditDialogOpen(true);
+  const handleEditClick = (type: "in" | "out", time: string) => {
+    setEditDialog({ open: true, type, time });
   };
 
   const handleClose = () => {
-    setIsEditDialogOpen(false);
-    setEditedTime(item.time);
+    setEditDialog(null);
   };
 
-  const handleSave = () => {
-    onEdit?.(editedTime);
-    setIsEditDialogOpen(false);
+  const handleSave = (newTime: string) => {
+    if (editDialog?.type === "in") {
+      onEditIn(newTime);
+    } else {
+      onEditOut(newTime);
+    }
+    handleClose();
   };
 
   return (
-    <TimelineItem {...other}>
-      <TimelineSeparator>
-        <TimelineDot
-          color={item.type === "in" ? "success" : "error"}
-          sx={{
-            bgcolor: item.type === "in" ? "success.main" : "error.main",
-          }}
+    <>
+      <Box
+        display="flex"
+        alignItems="center"
+        justifyContent="space-between"
+        gap={2}
+        flexWrap="wrap"
+      >
+        <TimeDisplay
+          label="IN"
+          time={item.in}
+          color="success.main"
+          onEdit={() => handleEditClick("in", item.in)}
         />
-        {!lastItem && <TimelineConnector />}
-      </TimelineSeparator>
+        <Divider sx={{ flex: 1 }} />
+        <DurationDisplay duration={duration} />
+        <Divider sx={{ flex: 1 }} />
+        <TimeDisplay
+          label="OUT"
+          time={item.out || "—"}
+          color={item.out ? "error.main" : "text.disabled"}
+          onEdit={
+            item.out ? () => handleEditClick("out", item.out!) : undefined
+          }
+        />
+      </Box>
 
-      <TimelineContent>
-        <Stack direction="row" alignItems="center" spacing={1}>
-          <Typography
-            variant="subtitle1"
-            sx={{
-              fontWeight: 600,
-              color: item.type === "in" ? "success.main" : "error.main",
-            }}
+      <Dialog open={!!editDialog} onClose={handleClose}>
+        <DialogTitle>Edit Time Entry</DialogTitle>
+        <DialogContent>
+          <TextField
+            autoFocus
+            margin="dense"
+            label="Time"
+            type="text"
+            fullWidth
+            value={editDialog?.time || ""}
+            onChange={(e) =>
+              setEditDialog((prev) =>
+                prev ? { ...prev, time: e.target.value } : null
+              )
+            }
+            placeholder="eg: 10:02:17 AM"
+            sx={{ mt: 2 }}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleClose}>Cancel</Button>
+          <Button
+            onClick={() => editDialog && handleSave(editDialog.time)}
+            variant="contained"
+            color="primary"
           >
-            {item.type === "in" ? "Clocked In" : "Clocked Out"}
-          </Typography>
-          <Typography variant="subtitle1" sx={{ fontWeight: 500 }}>
-            at
-          </Typography>
-          <Typography variant="h6" sx={{ fontWeight: 700 }}>
-            {item.time}
-          </Typography>
-          <IconButton
-            size="small"
-            onClick={handleEditClick}
-            sx={{
-              ml: 1,
-              color: "text.secondary",
-              "&:hover": {
-                color: "primary.main",
-              },
-            }}
-          >
-            <EditIcon fontSize="small" color="success" />
-          </IconButton>
-        </Stack>
-
-        {timeDifference && (
-          <Stack
-            direction="row"
-            alignItems="center"
-            spacing={1}
-            sx={{
-              mt: 1,
-              color: "success.main",
-              bgcolor: "success.lighter",
-              p: 1,
-              borderRadius: 1,
-              display: "inline-flex",
-            }}
-          >
-            <AccessTimeIcon fontSize="small" />
-            <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
-              Duration: {timeDifference}
-            </Typography>
-          </Stack>
-        )}
-
-        <Dialog open={isEditDialogOpen} onClose={handleClose}>
-          <DialogTitle>Edit Time Entry</DialogTitle>
-          <DialogContent>
-            <TextField
-              autoFocus
-              margin="dense"
-              label="Time"
-              type="text"
-              fullWidth
-              value={editedTime}
-              onChange={(e) => setEditedTime(e.target.value)}
-              placeholder="eg: 10:02:17 AM"
-              sx={{ mt: 2 }}
-            />
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={handleClose}>Cancel</Button>
-            <Button onClick={handleSave} variant="contained" color="primary">
-              Save
-            </Button>
-          </DialogActions>
-        </Dialog>
-      </TimelineContent>
-    </TimelineItem>
+            Save
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </>
   );
 }
 
-// ----------------------------------------------------------------------
+function TimeDisplay({
+  label,
+  time,
+  color,
+  onEdit,
+}: {
+  label: string;
+  time: string;
+  color: string;
+  onEdit?: () => void;
+}) {
+  return (
+    <Stack direction="row" spacing={1} alignItems="center">
+      <Box
+        sx={{
+          bgcolor: color,
+          borderRadius: "50%",
+          width: 24,
+          height: 24,
+        }}
+      />
+      <Box>
+        <Typography variant="caption" color="text.secondary">
+          {label}
+        </Typography>
+        <Stack direction="row" spacing={1} alignItems="center">
+          <Typography variant="subtitle2" fontWeight={600}>
+            {time}
+          </Typography>
+          {onEdit && (
+            <IconButton
+              size="small"
+              onClick={onEdit}
+              sx={{
+                color: "text.secondary",
+                "&:hover": {
+                  color: "primary.main",
+                },
+              }}
+            >
+              <EditIcon fontSize="small" />
+            </IconButton>
+          )}
+        </Stack>
+      </Box>
+    </Stack>
+  );
+}
+
+function DurationDisplay({ duration }: { duration: string }) {
+  return (
+    <Stack direction="row" spacing={1} alignItems="center">
+      <AccessTimeIcon fontSize="small" />
+      <Box>
+        <Typography variant="caption" color="text.secondary">
+          Duration
+        </Typography>
+        <Typography variant="subtitle2" fontWeight={600}>
+          {duration}
+        </Typography>
+      </Box>
+    </Stack>
+  );
+}
 
 function getTimeDifference(startTime: string, endTime: string): string {
-  const baseDate = "2000-01-01"; // fixed date to anchor both times
-
+  const baseDate = "2000-01-01";
   const start = new Date(`${baseDate} ${startTime}`);
   const end = new Date(`${baseDate} ${endTime}`);
 
   const diffMs = end.getTime() - start.getTime();
 
-  const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-  const diffMinutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
-  const diffSeconds = Math.floor((diffMs % (1000 * 60)) / 1000);
+  const hours = Math.floor(diffMs / (1000 * 60 * 60));
+  const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+  const seconds = Math.floor((diffMs % (1000 * 60)) / 1000);
 
-  return `${diffHours}h ${diffMinutes}m ${diffSeconds}s`;
+  return `${hours}h ${minutes}m ${seconds}s`;
 }

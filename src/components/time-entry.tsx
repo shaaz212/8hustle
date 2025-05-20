@@ -34,8 +34,6 @@ export function TimeEntry({
   title,
   targetTime,
   onTargetTimeChange,
-  breakTime,
-  onBreakTimeChange,
   onAddEntries,
 }: Props) {
   const [time, setTime] = useState("");
@@ -84,52 +82,31 @@ export function TimeEntry({
       <CardContent>
         <form onSubmit={handleSubmit}>
           <Stack spacing={3}>
-            <Stack
-              direction="row"
-              justifyContent="space-between"
+            <Box
+              display="flex"
+              justifyContent="flex-end"
               alignItems="center"
+              gap={1}
             >
-              <Box display="flex" alignItems="center" gap={1}>
-                <Typography variant="caption" fontWeight={700}>
-                  Target Time :
-                </Typography>
-                <TextField
-                  type="text"
-                  value={targetTime}
-                  onChange={(e) => onTargetTimeChange(e.target.value)}
-                  placeholder="eg: hh:mm"
-                  size="small"
-                  variant="outlined"
-                  sx={{
-                    "& .MuiOutlinedInput-root": {
-                      "&.Mui-focused fieldset": {
-                        borderColor: "success.main",
-                      },
+              <Typography variant="caption" fontWeight={700}>
+                Target Time :
+              </Typography>
+              <TextField
+                type="text"
+                value={targetTime}
+                onChange={(e) => onTargetTimeChange(e.target.value)}
+                placeholder="eg: hh:mm"
+                size="small"
+                variant="outlined"
+                sx={{
+                  "& .MuiOutlinedInput-root": {
+                    "&.Mui-focused fieldset": {
+                      borderColor: "success.main",
                     },
-                  }}
-                />
-              </Box>
-              <Box display="flex" alignItems="center" gap={1}>
-                <Typography variant="caption" fontWeight={700}>
-                  Break Time :
-                </Typography>
-                <TextField
-                  type="text"
-                  value={breakTime}
-                  onChange={(e) => onBreakTimeChange(e.target.value)}
-                  placeholder="eg: hh:mm"
-                  size="small"
-                  variant="outlined"
-                  sx={{
-                    "& .MuiOutlinedInput-root": {
-                      "&.Mui-focused fieldset": {
-                        borderColor: "success.main",
-                      },
-                    },
-                  }}
-                />
-              </Box>
-            </Stack>
+                  },
+                }}
+              />
+            </Box>
             <TextField
               label="Time"
               type="text"
@@ -141,47 +118,54 @@ export function TimeEntry({
               sx={{
                 "& .MuiOutlinedInput-root": {
                   "&.Mui-focused fieldset": {
-                    borderColor: "success.main",
+                    borderColor: "primary.main",
                   },
                 },
                 "& .MuiInputLabel-root": {
-                  color: "success.main",
+                  color: "primary.main",
                 },
                 "& label.Mui-focused": {
-                  color: "success.main",
+                  color: "primary.main",
                 },
               }}
             />
 
-            <Box display="flex" justifyContent="center">
-              <FormControl>
-                <RadioGroup
-                  row
-                  name="timingRadio"
-                  value={timingRadio}
-                  onChange={handleRadioChange}
-                >
-                  <FormControlLabel
-                    value="in"
-                    control={<Radio color="success" />}
-                    label="In"
-                  />
-                  <FormControlLabel
-                    value="out"
-                    control={<Radio color="success" />}
-                    label="Out"
-                  />
-                </RadioGroup>
-              </FormControl>
-            </Box>
+            <FormControl>
+              <RadioGroup
+                row
+                value={timingRadio}
+                onChange={handleRadioChange}
+                sx={{
+                  "& .MuiFormControlLabel-root": {
+                    color: "primary.main",
+                  },
+                }}
+              >
+                <FormControlLabel
+                  value="in"
+                  control={<Radio />}
+                  label="Clock In"
+                />
+                <FormControlLabel
+                  value="out"
+                  control={<Radio />}
+                  label="Clock Out"
+                />
+              </RadioGroup>
+            </FormControl>
 
             <Button
               type="submit"
               variant="contained"
-              color="success"
-              disabled={!time || !timingRadio}
+              fullWidth
+              sx={{
+                bgcolor: "primary.main",
+                "&:hover": {
+                  bgcolor: "primary.dark",
+                },
+              }}
             >
-              Submit
+              Add Entry
             </Button>
           </Stack>
         </form>

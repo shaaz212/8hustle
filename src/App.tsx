@@ -1,21 +1,21 @@
 import { useCallback, useState } from "react";
-
-// mui
 import {
   Box,
-  Card,
-  CardContent,
+  AppBar,
+  Toolbar,
+  Typography,
   Container,
   Stack,
-  Typography,
 } from "@mui/material";
+import { ThemeProvider } from "./theme/ThemeContext";
+import { ThemeSwitcher } from "./components/ThemeSwitcher";
 
 // components
 import { Header } from "./components/header";
 import { TimeEntry } from "./components/time-entry";
-import { EntriesTimeline } from "./components/entries-timeline";
 import { ToastProvider } from "./contexts/toast-context";
 import { LeaveTime } from "./components/leave-time";
+import { EntriesTimeline } from "./components/entries-timeline";
 
 interface Entry {
   time: string;
@@ -26,7 +26,6 @@ function App() {
   const [entries, setEntries] = useState<Entry[]>([]);
   const [targetTime, setTargetTime] = useState("08:00");
   const [breakTime, setBreakTime] = useState("01:00");
-  const [timeLeft, setTimeLeft] = useState("");
 
   const handleAddEntries = useCallback((entry: Entry) => {
     setEntries((prev) => [entry, ...prev]);
@@ -48,40 +47,55 @@ function App() {
     });
   }, []);
 
-  console.log("list", entries);
-
   return (
-    <ToastProvider>
-      <Container maxWidth="xl">
-        <Stack spacing={5}>
-          <Header />
-          <Box
-            display="grid"
-            gridTemplateColumns={{ xs: "1fr", md: "repeat(2,1fr)" }}
-            gap={3}
-          >
-            <TimeEntry
-              title="Work Hours"
-              targetTime={targetTime}
-              onTargetTimeChange={(targetTime) => handleTargetTime(targetTime)}
-              breakTime={breakTime}
-              onBreakTimeChange={(breakTime) => handleBreakTime(breakTime)}
-              onAddEntries={(entry) => handleAddEntries(entry)}
-            />
-            <LeaveTime
-              targetHours={targetTime}
-              breakHours={breakTime}
-              entries={entries}
-            />
-          </Box>
-          <EntriesTimeline
-            title="Work Hours Timeline"
-            list={entries}
-            onEditEntry={handleEditEntry}
-          />
-        </Stack>
-      </Container>
-    </ToastProvider>
+    <ThemeProvider>
+      <Box
+        sx={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}
+      >
+        <AppBar position="static" color="default" elevation={1}>
+          <Toolbar>
+            <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+              8Hustle
+            </Typography>
+            <ThemeSwitcher />
+          </Toolbar>
+        </AppBar>
+
+        <Container component="main" sx={{ flexGrow: 1, py: 4 }}>
+          <ToastProvider>
+            <Stack spacing={5}>
+              <Header />
+              <Box
+                display="grid"
+                gridTemplateColumns={{ xs: "1fr", md: "repeat(2,1fr)" }}
+                gap={3}
+              >
+                <TimeEntry
+                  title="Work Hours"
+                  targetTime={targetTime}
+                  onTargetTimeChange={(targetTime) =>
+                    handleTargetTime(targetTime)
+                  }
+                  breakTime={breakTime}
+                  onBreakTimeChange={(breakTime) => handleBreakTime(breakTime)}
+                  onAddEntries={(entry) => handleAddEntries(entry)}
+                />
+                <LeaveTime
+                  targetHours={targetTime}
+                  breakHours={breakTime}
+                  entries={entries}
+                />
+              </Box>
+              <EntriesTimeline
+                title="Work Hours Timeline"
+                list={entries}
+                onEditEntry={handleEditEntry}
+              />
+            </Stack>
+          </ToastProvider>
+        </Container>
+      </Box>
+    </ThemeProvider>
   );
 }
 

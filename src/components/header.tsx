@@ -29,7 +29,7 @@ export function Header() {
             variant="h5"
             sx={{
               fontWeight: 600,
-              color: "success.main",
+              color: "primary.main",
               letterSpacing: "0.5px",
             }}
           >
