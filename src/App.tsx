@@ -11,11 +11,11 @@ import { ThemeProvider } from "./theme/ThemeContext";
 import { ThemeSwitcher } from "./components/ThemeSwitcher";
 
 // components
-import { Header } from "./components/header";
 import { TimeEntry } from "./components/time-entry";
 import { ToastProvider } from "./contexts/toast-context";
 import { LeaveTime } from "./components/leave-time";
 import { EntriesTimeline } from "./components/entries-timeline";
+import { Iconify } from "./components/iconify";
 
 interface Entry {
   time: string;
@@ -25,7 +25,6 @@ interface Entry {
 function App() {
   const [entries, setEntries] = useState<Entry[]>([]);
   const [targetTime, setTargetTime] = useState("08:00");
-  const [breakTime, setBreakTime] = useState("01:00");
 
   const handleAddEntries = useCallback((entry: Entry) => {
     setEntries((prev) => [entry, ...prev]);
@@ -33,10 +32,6 @@ function App() {
 
   const handleTargetTime = useCallback((targetTime: string) => {
     setTargetTime(targetTime);
-  }, []);
-
-  const handleBreakTime = useCallback((breakTime: string) => {
-    setBreakTime(breakTime);
   }, []);
 
   const handleEditEntry = useCallback((index: number, newTime: string) => {
@@ -54,8 +49,14 @@ function App() {
       >
         <AppBar position="static" color="default" elevation={1}>
           <Toolbar>
-            <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-              8Hustle
+            <Iconify icon="guidance:time" color="primary.main" />
+            <Typography
+              variant="h6"
+              component="div"
+              fontWeight={800}
+              sx={{ flexGrow: 1 }}
+            >
+              Hustle
             </Typography>
             <ThemeSwitcher />
           </Toolbar>
@@ -64,7 +65,6 @@ function App() {
         <Container component="main" sx={{ flexGrow: 1, py: 4 }}>
           <ToastProvider>
             <Stack spacing={5}>
-              <Header />
               <Box
                 display="grid"
                 gridTemplateColumns={{ xs: "1fr", md: "repeat(2,1fr)" }}
@@ -76,15 +76,9 @@ function App() {
                   onTargetTimeChange={(targetTime) =>
                     handleTargetTime(targetTime)
                   }
-                  breakTime={breakTime}
-                  onBreakTimeChange={(breakTime) => handleBreakTime(breakTime)}
                   onAddEntries={(entry) => handleAddEntries(entry)}
                 />
-                <LeaveTime
-                  targetHours={targetTime}
-                  breakHours={breakTime}
-                  entries={entries}
-                />
+                <LeaveTime targetHours={targetTime} entries={entries} />
               </Box>
               <EntriesTimeline
                 title="Work Hours Timeline"

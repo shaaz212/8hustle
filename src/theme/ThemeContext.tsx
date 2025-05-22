@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useMemo } from "react";
+import { createContext, useContext, useState, useMemo, useEffect } from "react";
 import type { ReactNode } from "react";
 import { ThemeProvider as MuiThemeProvider, createTheme } from "@mui/material";
 import CssBaseline from "@mui/material/CssBaseline";
@@ -25,9 +25,32 @@ const colorPresets = {
 };
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [mode, setMode] = useState<ThemeMode>("light");
-  const [colorPreset, setColorPreset] = useState<ColorPreset>("default");
-  const [customColor, setCustomColor] = useState("#1976d2");
+  const [mode, setMode] = useState<ThemeMode>(() => {
+    const savedMode = localStorage.getItem("themeMode");
+    return (savedMode as ThemeMode) || "light";
+  });
+
+  const [colorPreset, setColorPreset] = useState<ColorPreset>(() => {
+    const savedPreset = localStorage.getItem("colorPreset");
+    return (savedPreset as ColorPreset) || "default";
+  });
+
+  const [customColor, setCustomColor] = useState(() => {
+    const savedColor = localStorage.getItem("customColor");
+    return savedColor || "#1976d2";
+  });
+
+  useEffect(() => {
+    localStorage.setItem("themeMode", mode);
+  }, [mode]);
+
+  useEffect(() => {
+    localStorage.setItem("colorPreset", colorPreset);
+  }, [colorPreset]);
+
+  useEffect(() => {
+    localStorage.setItem("customColor", customColor);
+  }, [customColor]);
 
   const theme = useMemo(() => {
     const primaryColor =

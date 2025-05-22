@@ -1,10 +1,8 @@
 import { Box, IconButton, Menu, MenuItem, Tooltip } from "@mui/material";
-import Brightness4Icon from "@mui/icons-material/Brightness4";
-import Brightness7Icon from "@mui/icons-material/Brightness7";
-import PaletteIcon from "@mui/icons-material/Palette";
 import { useState } from "react";
 import { useTheme } from "../theme/ThemeContext";
 import { ColorPicker } from "./ColorPicker";
+import { Iconify } from "./iconify";
 
 export function ThemeSwitcher() {
   const { mode, toggleMode } = useTheme();
@@ -19,16 +17,20 @@ export function ThemeSwitcher() {
   };
 
   return (
-    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+    <Box sx={{ display: "flex", alignItems: "center" }}>
       <Tooltip title={`Switch to ${mode === "light" ? "dark" : "light"} mode`}>
-        <IconButton onClick={toggleMode} color="inherit">
-          {mode === "light" ? <Brightness4Icon /> : <Brightness7Icon />}
+        <IconButton onClick={toggleMode} color="primary">
+          <Iconify
+            icon={
+              mode === "light" ? "entypo:light-up" : "tdesign:mode-dark-filled"
+            }
+          />
         </IconButton>
       </Tooltip>
 
       <Tooltip title="Change theme color">
-        <IconButton onClick={handleColorMenuOpen} color="inherit">
-          <PaletteIcon />
+        <IconButton onClick={handleColorMenuOpen} color="primary">
+          <Iconify icon="fluent:color-16-filled" />
         </IconButton>
       </Tooltip>
 
@@ -36,20 +38,8 @@ export function ThemeSwitcher() {
         anchorEl={anchorEl}
         open={Boolean(anchorEl)}
         onClose={handleColorMenuClose}
-        PaperProps={{
-          sx: {
-            mt: 1.5,
-            minWidth: 200,
-          },
-        }}
       >
-        <MenuItem
-          onClick={(e) => e.stopPropagation()}
-          sx={{
-            minWidth: 200,
-            p: 0,
-          }}
-        >
+        <MenuItem onClick={(e) => e.stopPropagation()}>
           <ColorPicker />
         </MenuItem>
       </Menu>

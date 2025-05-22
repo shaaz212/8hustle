@@ -7,7 +7,6 @@ import {
 
 interface LeaveTimeProps {
   targetHours: string; // e.g., "08:00"
-  breakHours: string; // e.g., "01:00"
   entries: { time: string; type: "in" | "out" }[];
 }
 

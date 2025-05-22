@@ -24,9 +24,7 @@ interface Entry {
 type Props = {
   title?: string;
   targetTime?: string;
-  breakTime?: string;
   onTargetTimeChange: (targetTime: string) => void;
-  onBreakTimeChange: (breakTime: string) => void;
   onAddEntries: (entry: Entry) => void;
 };
 
@@ -101,7 +99,7 @@ export function TimeEntry({
                 sx={{
                   "& .MuiOutlinedInput-root": {
                     "&.Mui-focused fieldset": {
-                      borderColor: "success.main",
+                      borderColor: "primary.main",
                     },
                   },
                 }}
@@ -143,13 +141,29 @@ export function TimeEntry({
               >
                 <FormControlLabel
                   value="in"
-                  control={<Radio />}
-                  label="Clock In"
+                  control={
+                    <Radio
+                      sx={{
+                        "& .MuiFormControlLabel-root": {
+                          color: "success.main",
+                        },
+                      }}
+                    />
+                  }
+                  label="IN"
                 />
                 <FormControlLabel
                   value="out"
-                  control={<Radio />}
-                  label="Clock Out"
+                  control={
+                    <Radio
+                      sx={{
+                        "& .MuiFormControlLabel-root": {
+                          color: "error.main",
+                        },
+                      }}
+                    />
+                  }
+                  label="OUT"
                 />
               </RadioGroup>
             </FormControl>
